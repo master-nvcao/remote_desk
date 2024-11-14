@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remote Control</title>
+</head>
+<body>
+    <button onclick="sendCommand('left_click')">Left Click</button>
+    <button onclick="sendCommand('right_click')">Right Click</button>
+    <button onclick="sendCommand('press_key', 'space')">Space</button>
+    <button onclick="sendCommand('press_key', 'up')">Up Arrow</button>
+    <button onclick="sendCommand('press_key', 'down')">Down Arrow</button>
+    <button onclick="sendCommand('press_key', 'left')">Left Arrow</button>
+    <button onclick="sendCommand('press_key', 'right')">Right Arrow</button>
+
+    <script>
+        const socket = new WebSocket("ws://localhost:port");
+
+        socket.onopen = () => {
+            console.log("Connected to WebSocket server");
+        };
+
+        socket.onclose = () => {
+            console.log("Disconnected from WebSocket server");
+        };
+
+        function sendCommand(action, key = null) {
+            const command = { action: action };
+            if (key) command.key = key;
+            socket.send(JSON.stringify(command));
+        }
+    </script>
+</body>
+</html>
