@@ -53,14 +53,28 @@ async def handle_client(websocket):
             pyautogui.click()
         elif action == "right_click":
             pyautogui.rightClick()
-        elif action == "move_mouse":
-            x, y = data.get("x"), data.get("y")
-            pyautogui.moveTo(x, y)
 
         # Handle keyboard actions
         elif action == "press_key":
             key = data.get("key")
             pyautogui.press(key)
+
+        # New functionalities
+        elif action == "fullscreen":
+            pyautogui.press("f")
+        elif action == "exit_fullscreen":
+            pyautogui.press("esc")
+        elif action == "minimize_all":
+            pyautogui.hotkey("win", "d")
+        elif action == "play_pause":
+            pyautogui.press("playpause")
+        elif action == "mute":
+            pyautogui.press("volumemute")
+        elif action == "volume_up":
+            pyautogui.press("volumeup")
+        elif action == "volume_down":
+            pyautogui.press("volumedown")
+
 
 
 async def start_websocket_server():

@@ -1,18 +1,376 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remote Control</title>
-</head>
-<body>
-    <button onclick="sendCommand('left_click')">Left Click</button>
-    <button onclick="sendCommand('right_click')">Right Click</button>
-    <button onclick="sendCommand('press_key', 'space')">Space</button>
-    <button onclick="sendCommand('press_key', 'up')">Up Arrow</button>
-    <button onclick="sendCommand('press_key', 'down')">Down Arrow</button>
-    <button onclick="sendCommand('press_key', 'left')">Left Arrow</button>
-    <button onclick="sendCommand('press_key', 'right')">Right Arrow</button>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <!-- <link rel="stylesheet" href="globals.css" />
+    <link rel="stylesheet" href="style.css" /> -->
+    <style>
+      @import url("https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css");
+* {
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0px;
+  height: 100%;
+}
+/* a blue color as a generic focus style */
+button:focus-visible {
+  outline: 2px solid #4a90e2 !important;
+  outline: -webkit-focus-ring-color auto 5px !important;
+}
+a {
+  text-decoration: none;
+}
+
+.frame {
+    background-color: #d0d0d0;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .frame .div {
+    background-color: #d0d0d0;
+    width: 965px;
+    height: 2987px;
+    position: relative;
+  }
+  
+  .frame .overlap-group {
+    height: 391px;
+    top: 1323px;
+    position: absolute;
+    width: 624px;
+    left: 170px;
+    background-color: #d1b0a7;
+    border-radius: 21px;
+  }
+  
+  .frame .arrow-up {
+    position: absolute;
+    width: 162px;
+    height: 147px;
+    top: 20px;
+    left: 231px;
+    background-color: #6eca31;
+    border-radius: 11px;
+    border: 1px solid;
+    border-color: #000000;
+  }
+  
+  .frame .arrow {
+    position: absolute;
+    width: 81px;
+    height: 86px;
+    top: 27px;
+    left: 40px;
+  }
+  
+  .frame .arrow-right {
+    position: absolute;
+    width: 147px;
+    height: 159px;
+    top: 212px;
+    left: 435px;
+    background-color: #6eca31;
+    border-radius: 13px;
+    border: 1px solid;
+    border-color: #000000;
+    transform: rotate(90deg);
+  }
+  
+  .frame .img {
+    position: absolute;
+    width: 82px;
+    height: 88px;
+    top: 32px;
+    left: 29px;
+    transform: rotate(-90deg);
+  }
+  
+  .frame .arrow-left {
+    position: absolute;
+    width: 147px;
+    height: 168px;
+    top: 207px;
+    left: 46px;
+    background-color: #6eca31;
+    border-radius: 7px;
+    border: 1px solid;
+    border-color: #000000;
+    transform: rotate(-90deg);
+  }
+  
+  .frame .arrow-2 {
+    position: absolute;
+    width: 86px;
+    height: 88px;
+    top: 36px;
+    left: 30px;
+    transform: rotate(90deg);
+  }
+  
+  .frame .arrow-down {
+    position: absolute;
+    width: 165px;
+    height: 147px;
+    top: 218px;
+    left: 231px;
+    background-color: #6eca31;
+    border-radius: 6px;
+    border: 1px solid;
+    border-color: #000000;
+    transform: rotate(180deg);
+  }
+  
+  .frame .arrow-3 {
+    position: absolute;
+    width: 81px;
+    height: 75px;
+    top: 32px;
+    left: 42px;
+    transform: rotate(-180deg);
+  }
+  
+  .frame .overlap {
+    height: 519px;
+    top: 120px;
+    position: absolute;
+    width: 624px;
+    left: 170px;
+    background-color: #d1b0a7;
+    border-radius: 21px;
+  }
+  
+  .frame .group {
+    position: absolute;
+    width: 177px;
+    height: 176px;
+    top: 297px;
+    left: 78px;
+  }
+  
+  .frame .image-wrapper {
+    position: relative;
+    height: 176px;
+    background-image: url(https://c.animaapp.com/mNBNiyFN/img/rectangle-7-1.png);
+    background-size: 100% 100%;
+  }
+  
+  .frame .image {
+    width: 126px;
+    height: 132px;
+    top: 22px;
+    left: 23px;
+    position: absolute;
+    object-fit: cover;
+  }
+  
+  .frame .group-wrapper {
+    position: absolute;
+    width: 177px;
+    height: 176px;
+    top: 62px;
+    left: 357px;
+  }
+  
+  .frame .img-wrapper {
+    position: relative;
+    height: 176px;
+    background-image: url(https://c.animaapp.com/mNBNiyFN/img/rectangle-7-2.png);
+    background-size: 100% 100%;
+  }
+  
+  .frame .image-2 {
+    width: 124px;
+    height: 135px;
+    top: 19px;
+    left: 28px;
+    position: absolute;
+    object-fit: cover;
+  }
+  
+  .frame .group-2 {
+    position: absolute;
+    width: 165px;
+    height: 176px;
+    top: 60px;
+    left: 83px;
+    background-image: url(https://c.animaapp.com/mNBNiyFN/img/rectangle-7-3.png);
+    background-size: 100% 100%;
+  }
+  
+  .frame .image-3 {
+    width: 93px;
+    height: 100px;
+    top: 38px;
+    left: 37px;
+    position: absolute;
+    object-fit: cover;
+  }
+  
+  .frame .group-3 {
+    position: absolute;
+    width: 176px;
+    height: 173px;
+    top: 299px;
+    left: 358px;
+    background-image: url(https://c.animaapp.com/mNBNiyFN/img/rectangle-6.png);
+    background-size: 100% 100%;
+  }
+  
+  .frame .image-4 {
+    width: 105px;
+    height: 116px;
+    top: 20px;
+    left: 35px;
+    position: absolute;
+    object-fit: cover;
+  }
+  
+  .frame .overlap-2 {
+    height: 519px;
+    top: 710px;
+    position: absolute;
+    width: 624px;
+    left: 170px;
+    background-color: #d1b0a7;
+    border-radius: 21px;
+  }
+  
+  .frame .pause-button {
+    position: absolute;
+    width: 149px;
+    height: 139px;
+    top: 79px;
+    left: 78px;
+    background-color: #ca8831;
+    border: 1px solid;
+    border-color: #000000;
+  }
+  
+  .frame .group-4 {
+    position: relative;
+    width: 27px;
+    height: 60px;
+    top: 39px;
+    left: 52px;
+  }
+  
+  .frame .line {
+    left: 27px;
+    position: absolute;
+    width: 11px;
+    height: 60px;
+    top: 0;
+  }
+  
+  .frame .line-2 {
+    left: 0;
+    position: absolute;
+    width: 11px;
+    height: 60px;
+    top: 0;
+  }
+  
+  .frame .volume-up {
+    position: absolute;
+    width: 177px;
+    height: 176px;
+    top: 61px;
+    left: 357px;
+    background-image: url(https://c.animaapp.com/mNBNiyFN/img/rectangle-7.png);
+    background-size: 100% 100%;
+  }
+  
+  .frame .image-5 {
+    width: 108px;
+    height: 103px;
+    top: 34px;
+    left: 36px;
+    position: absolute;
+    object-fit: cover;
+  }
+  
+  .frame .group-5 {
+    position: absolute;
+    width: 177px;
+    height: 176px;
+    top: 295px;
+    left: 357px;
+    background-image: url(https://c.animaapp.com/mNBNiyFN/img/rectangle-9.png);
+    background-size: 100% 100%;
+  }
+  
+  .frame .image-6 {
+    width: 129px;
+    height: 125px;
+    top: 26px;
+    left: 23px;
+    position: absolute;
+    object-fit: cover;
+  }
+  
+  .frame .group-6 {
+    position: absolute;
+    width: 177px;
+    height: 176px;
+    top: 295px;
+    left: 66px;
+    background-image: url(https://c.animaapp.com/mNBNiyFN/img/rectangle-10.png);
+    background-size: 100% 100%;
+  }
+  
+  .frame .image-7 {
+    width: 108px;
+    height: 95px;
+    top: 40px;
+    left: 32px;
+    position: absolute;
+    object-fit: cover;
+  }
+  
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <div class="div">
+        <div class="overlap-group">
+          <div class="arrow-up" onclick="sendCommand('press_key', 'up')"><img class="arrow" src="https://c.animaapp.com/mNBNiyFN/img/arrow-1.svg" /></div>
+          <div class="arrow-right" onclick="sendCommand('press_key', 'right')" ><img class="img" src="https://c.animaapp.com/mNBNiyFN/img/arrow-1-1.svg" /></div>
+          <div class="arrow-left" onclick="sendCommand('press_key', 'left')" ><img class="arrow-2" src="https://c.animaapp.com/mNBNiyFN/img/arrow-1-2.svg" /></div>
+          <div class="arrow-down" onclick="sendCommand('press_key', 'down')" ><img class="arrow-3" src="https://c.animaapp.com/mNBNiyFN/img/arrow-1-3.svg" /></div>
+        </div>
+        <div class="overlap">
+          <div class="group">
+            <div class="image-wrapper" onclick="sendCommand('minimize_all')">
+              <img class="image" src="https://c.animaapp.com/mNBNiyFN/img/image-7@2x.png" />
+            </div>
+          </div>
+          <div class="group-wrapper">
+            <div class="img-wrapper" onclick="sendCommand('exit_fullscreen')">
+              <img class="image-2" src="https://c.animaapp.com/mNBNiyFN/img/image-8@2x.png" />
+            </div>
+          </div>
+          <div class="group-2" onclick="sendCommand('fullscreen')" ><img class="image-3" src="https://c.animaapp.com/mNBNiyFN/img/image-6@2x.png" /></div>
+          <div class="group-3" onclick="sendCommand('left_click')" ><img class="image-4" src="https://c.animaapp.com/mNBNiyFN/img/image-9@2x.png" /></div>
+        </div>
+        <div class="overlap-2">
+          <div class="pause-button" onclick="sendCommand('play_pause')">
+            <div class="group-4">
+              <img class="line" src="https://c.animaapp.com/mNBNiyFN/img/line-2.svg" />
+              <img class="line-2" src="https://c.animaapp.com/mNBNiyFN/img/line-1.svg" />
+            </div>
+          </div>
+          <div class="volume-up" onclick="sendCommand('volume_up')" ><img class="image-5" src="https://c.animaapp.com/mNBNiyFN/img/image-1@2x.png" /></div>
+          <div class="group-5" onclick="sendCommand('volume_down')" ><img class="image-6" src="https://c.animaapp.com/mNBNiyFN/img/image-4@2x.png" /></div>
+          <div class="group-6" onclick="sendCommand('mute')" ><img class="image-7" src="https://c.animaapp.com/mNBNiyFN/img/image-5@2x.png" /></div>
+        </div>
+      </div>
+    </div>
 
     <script>
         const socket = new WebSocket("ws://localhost:port");
@@ -31,5 +389,7 @@
             socket.send(JSON.stringify(command));
         }
     </script>
-</body>
+
+
+  </body>
 </html>
