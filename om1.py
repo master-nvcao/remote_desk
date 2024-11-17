@@ -18,6 +18,7 @@ HTML_TEMP = "temp.html"
 HTML_FILE = "index.html"
 
 
+
 def get_html_path():
     """Get the path to the index.html file, accounting for bundling by PyInstaller."""
     if getattr(sys, 'frozen', False):
@@ -26,8 +27,8 @@ def get_html_path():
     else:
         # If running from the source code, use the current directory
         base_path = os.path.dirname(__file__)
+    
     return os.path.join(base_path, "index.html")
-
 
 def get_local_ip():
     """Get the IP address of the active network interface."""
@@ -43,58 +44,49 @@ def get_local_ip():
 
 async def handle_client(websocket):
     """Handle incoming WebSocket connections and control mouse/keyboard."""
-    try:
-        async for message in websocket:
-            try:
-                data = json.loads(message)
-                action = data.get("action")
+    async for message in websocket:
+        data = json.loads(message)
+        action = data.get("action")
 
-                # Handle mouse actions
-                if action == "left_click":
-                    pyautogui.click()
-                elif action == "right_click":
-                    pyautogui.rightClick()
+        # Handle mouse actions
+        if action == "left_click":
+            pyautogui.click()
+        elif action == "right_click":
+            pyautogui.rightClick()
 
-                # Handle keyboard actions
-                elif action == "press_key":
-                    key = data.get("key")
-                    pyautogui.press(key)
+        # Handle keyboard actions
+        elif action == "press_key":
+            key = data.get("key")
+            pyautogui.press(key)
 
-                # New functionalities
-                elif action == "fullscreen":
-                    pyautogui.press("f")
-                elif action == "exit_fullscreen":
-                    pyautogui.press("esc")
-                elif action == "minimize_all":
-                    pyautogui.hotkey("win", "d")
-                elif action == "play_pause":
-                    pyautogui.press("playpause")
-                elif action == "mute":
-                    pyautogui.press("volumemute")
-                elif action == "volume_up":
-                    pyautogui.press("volumeup")
-                elif action == "volume_down":
-                    pyautogui.press("volumedown")
-            except Exception as e:
-                print(f"Error processing message: {message} | Exception: {e}")
-    except websockets.exceptions.ConnectionClosedError as e:
-        print(f"WebSocket connection closed unexpectedly: {e}")
-    except Exception as e:
-        print(f"Unexpected error in WebSocket handler: {e}")
+        # New functionalities
+        elif action == "fullscreen":
+            pyautogui.press("f")
+        elif action == "exit_fullscreen":
+            pyautogui.press("esc")
+        elif action == "minimize_all":
+            pyautogui.hotkey("win", "d")
+        elif action == "play_pause":
+            pyautogui.press("playpause")
+        elif action == "mute":
+            pyautogui.press("volumemute")
+        elif action == "volume_up":
+            pyautogui.press("volumeup")
+        elif action == "volume_down":
+            pyautogui.press("volumedown")
+
 
 
 async def start_websocket_server():
     """Start the WebSocket server to handle remote commands."""
-    async with websockets.serve(
-        handle_client, "0.0.0.0", WS_PORT, ping_interval=20, ping_timeout=20
-    ):
+    async with websockets.serve(handle_client, "0.0.0.0", WS_PORT):
         await asyncio.Future()  # Keep running indefinitely
 
 
 def start_http_server():
     """Start the HTTP server to serve the index.html page."""
     html_path = get_html_path()
-
+    
     class CustomHandler(http.server.SimpleHTTPRequestHandler):
         def translate_path(self, path):
             """Override translate_path to return the correct path for index.html"""
@@ -115,9 +107,7 @@ def update_html_file(ip_address):
             content = file.read()
 
         # Update WebSocket IP in the file
-        new_content = content.replace(
-            "ws://localhost:port", f"ws://{ip_address}:{WS_PORT}"
-        )
+        new_content = content.replace("ws://localhost:port", f"ws://{ip_address}:{WS_PORT}")
 
         with open(html_file, "w") as file:
             file.write(new_content)
@@ -132,34 +122,21 @@ def run_gui(ip_address):
     link = f"http://{ip_address}:{HTTP_PORT}/index.html"
 
     if ip_address == "127.0.0.1":
-        label_link = tk.Label(
-            root,
-            text="Not connected to any Network. Please connect to a network.",
-            fg="red",
-            cursor="hand2",
-            font=("Helvetica", 18),
-        )
+        label_link = tk.Label(root, text=f"Not connected to any Network please connect to a network", fg="red", cursor="hand2", font=("Helvetica", 18))
         label_link.pack(pady=10, anchor="center")
     else:
-        # Center the labels using pack with expand=True and anchor='center'
-        label_ip = tk.Label(
-            root, text=f"Computer IP Address: {ip_address}", font=("Helvetica", 18)
-        )
+    # Center the labels using pack with expand=True and anchor='center'
+        label_ip = tk.Label(root, text=f"Computer IP Address: {ip_address}", font=("Helvetica", 18))
         label_ip.pack(pady=10, anchor="center")
 
-        label_link = tk.Label(
-            root,
-            text=f"Access from phone: {link}",
-            fg="blue",
-            cursor="hand2",
-            font=("Helvetica", 14),
-        )
+        label_link = tk.Label(root, text=f"Access from phone: {link}", fg="blue", cursor="hand2", font=("Helvetica", 14))
         label_link.pack(pady=10, anchor="center")
+
+        
 
         # Open link in browser on click
         def open_link(event):
             import webbrowser
-
             webbrowser.open(link)
 
         label_link.bind("<Button-1>", open_link)
@@ -175,9 +152,7 @@ def main():
     update_html_file(ip_address)
 
     # Start the WebSocket server in the background
-    threading.Thread(
-        target=lambda: asyncio.run(start_websocket_server()), daemon=True
-    ).start()
+    threading.Thread(target=lambda: asyncio.run(start_websocket_server()), daemon=True).start()
 
     # Start the HTTP server in the background
     threading.Thread(target=start_http_server, daemon=True).start()
