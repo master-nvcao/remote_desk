@@ -10,13 +10,29 @@ import threading
 from pathlib import Path
 import sys
 import os
+from flask import Flask, request, jsonify
+
+# pyinstaller --onefile --windowed --add-data "index.html;."  --add-data "temp.html;." main.py
+
+
+def get_free_port():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('', 0))  # Bind to a free port provided by the OS
+        return s.getsockname()[1]  # Get the port number
+
 
 # Configuration
 HTTP_PORT = 8080
-WS_PORT = 8765
+WS_PORT = get_free_port()
 HTML_TEMP = "temp.html"
 HTML_FILE = "index.html"
 
+print(WS_PORT)
+# Flask app for HTTP requests
+app = Flask(__name__)
+
+# List to hold WebSocket clients
+ws_clients = []
 
 def get_html_path():
     """Get the path to the index.html file, accounting for bundling by PyInstaller."""
@@ -27,7 +43,6 @@ def get_html_path():
         # If running from the source code, use the current directory
         base_path = os.path.dirname(__file__)
     return os.path.join(base_path, "index.html")
-
 
 def get_local_ip():
     """Get the IP address of the active network interface."""
@@ -40,9 +55,10 @@ def get_local_ip():
             ip_address = "127.0.0.1"  # Fallback to localhost if there's an issue
     return ip_address
 
-
-async def handle_client(websocket):
+async def handle_client(websocket, path= ""):
     """Handle incoming WebSocket connections and control mouse/keyboard."""
+    # Add client to the list of WebSocket clients
+    ws_clients.append(websocket)
     try:
         async for message in websocket:
             try:
@@ -81,15 +97,18 @@ async def handle_client(websocket):
         print(f"WebSocket connection closed unexpectedly: {e}")
     except Exception as e:
         print(f"Unexpected error in WebSocket handler: {e}")
-
+    finally:
+        # Remove client from WebSocket list on disconnect
+        ws_clients.remove(websocket)
 
 async def start_websocket_server():
     """Start the WebSocket server to handle remote commands."""
-    async with websockets.serve(
-        handle_client, "0.0.0.0", WS_PORT, ping_interval=20, ping_timeout=20
-    ):
-        await asyncio.Future()  # Keep running indefinitely
-
+    try:
+        async with websockets.serve(handle_client, "0.0.0.0", WS_PORT, ping_interval=20, ping_timeout=20):
+            print("WebSocket server is running and listening on port", WS_PORT)
+            await asyncio.Future()  # Keep running indefinitely
+    except Exception as e:
+        print(f"Failed to start WebSocket server: {e}")
 
 def start_http_server():
     """Start the HTTP server to serve the index.html page."""
@@ -106,7 +125,6 @@ def start_http_server():
     with socketserver.TCPServer(("0.0.0.0", HTTP_PORT), handler) as httpd:
         httpd.serve_forever()
 
-
 def update_html_file(ip_address):
     html_temp = Path(HTML_TEMP)
     html_file = Path(HTML_FILE)
@@ -121,7 +139,6 @@ def update_html_file(ip_address):
 
         with open(html_file, "w") as file:
             file.write(new_content)
-
 
 def run_gui(ip_address):
     """Run a Tkinter GUI to display the IP address and access link."""
@@ -166,6 +183,49 @@ def run_gui(ip_address):
 
     root.mainloop()
 
+@app.route('/send-command', methods=['POST'])
+def send_command():
+    """HTTP endpoint to send commands to WebSocket clients."""
+    data = request.get_json()
+    action = data.get("action")
+    key = data.get("key", None)
+
+    if action:
+        # Construct WebSocket message
+        message = {"action": action}
+        if key:
+            message["key"] = key
+        
+        # Directly handle the action without WebSocket
+        try:
+            if action == "left_click":
+                pyautogui.click()
+            elif action == "right_click":
+                pyautogui.rightClick()
+            elif action == "press_key" and key:
+                pyautogui.press(key)
+            elif action == "fullscreen":
+                pyautogui.press("f")
+            elif action == "exit_fullscreen":
+                pyautogui.press("esc")
+            elif action == "minimize_all":
+                pyautogui.hotkey("win", "d")
+            elif action == "play_pause":
+                pyautogui.press("playpause")
+            elif action == "mute":
+                pyautogui.press("volumemute")
+            elif action == "volume_up":
+                pyautogui.press("volumeup")
+            elif action == "volume_down":
+                pyautogui.press("volumedown")
+            else:
+                return jsonify({"status": "error", "message": "Unknown action"}), 400
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)}), 500
+
+        return jsonify({"status": "success", "action": action, "key": key})
+    
+    return jsonify({"status": "error", "message": "Invalid command"}), 400
 
 def main():
     # Get the local IP address
@@ -182,9 +242,11 @@ def main():
     # Start the HTTP server in the background
     threading.Thread(target=start_http_server, daemon=True).start()
 
-    # Run the Tkinter GUI to show the IP and link
-    run_gui(ip_address)
+    # Start the Flask app in the background
+    threading.Thread(target=lambda: app.run(host='0.0.0.0', port=5000, debug=False), daemon=True).start()
 
+    # Run the GUI to display the IP address
+    run_gui(ip_address)
 
 if __name__ == "__main__":
     main()
